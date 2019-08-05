@@ -30,17 +30,13 @@ class App(QDialog):
         self.show()
 
     def showInfo(self):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Information)
-        msg.setWindowTitle("Information")
-        msg.setText("""Options:
-        'Merge PDFs': merge all the PDF files in the selected folder by modification date.
-        'Remove first and last pages': remove the first and last pages from every PDF document in the folder, and create a new folder with the edited files.
-        'Extract Front Cover': extract the first page of the firs document of the folder.
-        'Extract Back Cover': extract the last page of the first document of the folder.""")
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.exec_()
-
+        file = os.path.abspath("README.md")
+        if sys.platform == "win32":
+            os.startfile(file)
+        else:
+            opener = "xdg-open" if sys.platform == "linux" else "open"
+            subprocess.call([opener, file])
+        
     def checkButton(self):
         if self.ui.filterPages.isChecked():
             self.ui.OutputBox.setDisabled(True)
@@ -56,7 +52,6 @@ class App(QDialog):
     def enableOkButton(self):
         if (self.ui.action.checkedId() != -1) and (self.ui.OpenFolder.isEnabled()):
             self.ui.OK.setEnabled(True)
-    
 
     def clearFields(self):
         self.ui.Folder.setText("")
