@@ -156,7 +156,7 @@ class Ui_Dialog(object):
         font.setBold(True)
         font.setWeight(75)
         self.OutputBox.setFont(font)
-        self.OutputBox.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignTop)
+        self.OutputBox.setAlignment(QtCore.Qt.AlignJustify|QtCore.Qt.AlignVCenter)
         self.OutputBox.setObjectName("OutputBox")
         self.verticalLayout.addWidget(self.OutputBox)
         self.verticalLayout_3.addLayout(self.verticalLayout)

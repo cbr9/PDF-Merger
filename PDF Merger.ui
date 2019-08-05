@@ -274,7 +274,7 @@
         </font>
        </property>
        <property name="alignment">
-        <set>Qt::AlignJustify|Qt::AlignTop</set>
+        <set>Qt::AlignJustify|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
