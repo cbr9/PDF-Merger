@@ -43,7 +43,6 @@ class App(QMainWindow):
 		self.listDocs.show()
 
 	def selectDocuments(self):
-		global pdfs
 		pdfs = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')
 		pdfs = [pdf for pdf in pdfs][0]
 		for index, doc in enumerate(pdfs):
@@ -86,6 +85,7 @@ class App(QMainWindow):
 		self.ui.outputName.clear()
 
 	def mergeDocs(self):
+		## TAKE THE PDFS VARIABLE FROM THE WIDGETS IN SELF.DOCSLAYOUT ##
 		new_file = self.ui.outputName.text()
 		merger = PdfFileMerger()
 		if pdfs:
@@ -110,7 +110,6 @@ class App(QMainWindow):
 	# 	if os.path.exists(self.ui.outputName):
 	#
 
-
 	def extractPages(self, doc):
 
 		new_folder = ".temp"
@@ -121,10 +120,9 @@ class App(QMainWindow):
 
 		### ADD AN OVERWRITE FAILSAFE ###
 
-		range_ = self.ui.rangePages.text()
-		range_ = range_.split("-")
+		range_ = self.ui.rangePages.text().split("-")
 		from_ = range_[0]
-		to_ = range_[1]
+		to_ = range_[1] if len(range_) == 2 else (from_ + 1)
 		every_ = range[2] if len(range_) == 3 else 1
 		inputPdf = PdfFileReader(open(doc, "rb"))
 		output = PdfFileWriter()
@@ -133,7 +131,8 @@ class App(QMainWindow):
 
 		with open("test.pdf", "wb") as outputStream:
 			output.write(outputStream)
-		shutil.r
+		# os.remove(new_folder)
+
 
 if __name__ == "__main__":
 	app = QApplication(sys.argv)

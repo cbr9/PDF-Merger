@@ -208,4 +208,4 @@ class Ui_MainWindow(object):
         self.readmeFile.setText(_translate("MainWindow", "README"))
         self.selectDocs.setText(_translate("MainWindow", "Select documents"))
         self.inputLabel.setText(_translate("MainWindow", "INPUT"))
-        self.editListOfDocs.setText(_translate("MainWindow", "Edit list of selected files"))
+        self.editListOfDocs.setText(_translate("MainWindow", "Add or Remove Files"))

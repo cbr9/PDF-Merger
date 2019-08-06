@@ -356,7 +356,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Edit list of selected files</string>
+         <string>Add or Remove Files</string>
         </property>
        </widget>
       </item>
