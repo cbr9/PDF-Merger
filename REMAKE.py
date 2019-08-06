@@ -1,3 +1,4 @@
+import shutil
 import os
 import sys
 import subprocess
@@ -26,21 +27,23 @@ class App(QMainWindow):
 		self.listDocs = QDialog(self)
 		self.docsLayout = QtWidgets.QVBoxLayout(self.listDocs)
 		self.ui.editListOfDocs.clicked.connect(self.editSelection)
+		self.remove = QtWidgets.QPushButton(text="Remove")
+		self.add = QtWidgets.QPushButton(text="Add")
+		self.buttonsLayout = QtWidgets.QHBoxLayout()
+		self.buttonsLayout.addWidget(self.remove)
+		self.buttonsLayout.addWidget(self.add)
+		self.buttonsLayout.setAlignment(Qt.AlignBottom)
+		self.docsLayout.addLayout(self.buttonsLayout)
+		self.add.clicked.connect(self.addDocuments)
+		self.remove.clicked.connect(self.removeDocuments)
 		# self.ui.outputName.textChanged.connect(self.checkOutputPath)
 		self.show()
 
-	# def createListDocs(self):
 	def editSelection(self):
 		self.listDocs.show()
 
 	def selectDocuments(self):
 		global pdfs
-		remove = QtWidgets.QPushButton(text="Remove")
-		add = QtWidgets.QPushButton(text="Add")
-		buttonsLayout = QtWidgets.QHBoxLayout(self.docsLayout)
-		buttonsLayout.addWidget(remove)
-		buttonsLayout.addWidget(add)
-		buttonsLayout.setAlignment(Qt.AlignBottom)
 		pdfs = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')
 		pdfs = [pdf for pdf in pdfs][0]
 		for index, doc in enumerate(pdfs):
@@ -58,9 +61,6 @@ class App(QMainWindow):
 			self.ui.extractPages.setDisabled(True)
 			self.ui.rangePages.setDisabled(True)
 
-		add.clicked.connect(self.addDocuments)
-		remove.clicked.connect(self.removeDocuments)
-
 	def addDocuments(self):
 		additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')
 		additions = [pdf for pdf in additions][0]
@@ -70,10 +70,16 @@ class App(QMainWindow):
 			self.docsLayout.addWidget(checkbox)
 			self.docsLayout.setAlignment(Qt.AlignLeft)
 
-	def removeDocuments(self):
-		for widget in self.docsLayout.children():
-			print(widget)
+	@staticmethod
+	def subWidgets(layout):
+		widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
+		return widgets
 
+	def removeDocuments(self):
+		for widget in self.subWidgets(layout=self.docsLayout):
+			if isinstance(widget, QtWidgets.QCheckBox):
+				if widget.isChecked():
+					self.docsLayout.removeWidget(widget)
 
 	def clearFields(self):
 		self.ui.openFile.setDisabled(True)
@@ -127,7 +133,7 @@ class App(QMainWindow):
 
 		with open("test.pdf", "wb") as outputStream:
 			output.write(outputStream)
-
+		shutil.r
 
 if __name__ == "__main__":
 	app = QApplication(sys.argv)
