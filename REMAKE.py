@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
-from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMessageBox, QMainWindow
+from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMainWindow
 from PyQt5.QtCore import *
 from remakeUI import *
 
@@ -16,26 +16,64 @@ class App(QMainWindow):
 		self.setWindowIcon(QtGui.QIcon('/usr/share/pixmaps/PDF Merger.png'))
 		self.ui.openFile.clicked.connect(self.openFile)
 		self.ui.rangePages.setDisabled(True)
+		self.ui.extractPages.setDisabled(True)
 		self.ui.extractPages.toggled.connect(self.ui.rangePages.setEnabled)
 		self.ui.openFile.setDisabled(True)
+		self.ui.editListOfDocs.setDisabled(True)
+		self.ui.mergeDocs.setDisabled(True)
 		self.ui.clearFields.clicked.connect(self.clearFields)
 		self.ui.selectDocs.clicked.connect(self.selectDocuments)
 		self.listDocs = QDialog(self)
 		self.docsLayout = QtWidgets.QVBoxLayout(self.listDocs)
-		self.ui.editListOfDocs.clicked.connect(self.listDocs.show)
+		self.ui.editListOfDocs.clicked.connect(self.editSelection)
+		# self.ui.outputName.textChanged.connect(self.checkOutputPath)
 		self.show()
 
 	# def createListDocs(self):
+	def editSelection(self):
+		self.listDocs.show()
 
 	def selectDocuments(self):
+		global pdfs
+		remove = QtWidgets.QPushButton(text="Remove")
+		add = QtWidgets.QPushButton(text="Add")
+		buttonsLayout = QtWidgets.QHBoxLayout(self.docsLayout)
+		buttonsLayout.addWidget(remove)
+		buttonsLayout.addWidget(add)
+		buttonsLayout.setAlignment(Qt.AlignBottom)
 		pdfs = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')
 		pdfs = [pdf for pdf in pdfs][0]
 		for index, doc in enumerate(pdfs):
 			checkbox = QtWidgets.QCheckBox(doc)
 			checkbox.setText(doc)
-			checkbox.setChecked(True)
 			self.docsLayout.addWidget(checkbox)
 			self.docsLayout.setAlignment(Qt.AlignLeft)
+		if pdfs:
+			self.ui.editListOfDocs.setEnabled(True)
+		if len(pdfs) == 1:
+			self.ui.extractPages.setEnabled(True)
+			self.ui.mergeDocs.setDisabled(True)
+		else:
+			self.ui.mergeDocs.setEnabled(True)
+			self.ui.extractPages.setDisabled(True)
+			self.ui.rangePages.setDisabled(True)
+
+		add.clicked.connect(self.addDocuments)
+		remove.clicked.connect(self.removeDocuments)
+
+	def addDocuments(self):
+		additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')
+		additions = [pdf for pdf in additions][0]
+		for index, doc in enumerate(additions):
+			checkbox = QtWidgets.QCheckBox(doc)
+			checkbox.setText(doc)
+			self.docsLayout.addWidget(checkbox)
+			self.docsLayout.setAlignment(Qt.AlignLeft)
+
+	def removeDocuments(self):
+		for widget in self.docsLayout.children():
+			print(widget)
+
 
 	def clearFields(self):
 		self.ui.openFile.setDisabled(True)
@@ -43,8 +81,6 @@ class App(QMainWindow):
 
 	def mergeDocs(self):
 		new_file = self.ui.outputName.text()
-		# pdfs = [pdf for pdf in sorted(os.listdir(os.getcwd()), key=os.path.getmtime) if pdf.endswith(".pdf")]
-		pdfs = [pdf for pdf in sorted(os.listdir(os.getcwd()), key=os.path.getmtime) if pdf.endswith(".pdf")]
 		merger = PdfFileMerger()
 		if pdfs:
 			while pdfs:
@@ -63,6 +99,11 @@ class App(QMainWindow):
 		else:
 			opener = "xdg-open" if sys.platform == "linux" else "open"
 			subprocess.call([opener, file])
+
+	# def checkOutputPath(self):
+	# 	if os.path.exists(self.ui.outputName):
+	#
+
 
 	def extractPages(self, doc):
 
