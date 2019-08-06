@@ -119,7 +119,6 @@ class App(QMainWindow):
 			pass
 
 		### ADD AN OVERWRITE FAILSAFE ###
-
 		range_ = self.ui.rangePages.text().split("-")
 		from_ = range_[0]
 		to_ = range_[1] if len(range_) == 2 else (from_ + 1)
