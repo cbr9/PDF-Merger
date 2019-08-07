@@ -32,14 +32,14 @@ class App(QMainWindow):
 		self.buttonsLayout.addWidget(self.remove)
 		self.buttonsLayout.addWidget(self.add)
 		self.buttonsLayout.setAlignment(Qt.AlignTop)
-		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+		                                   QtWidgets.QSizePolicy.MinimumExpanding)
 		self.add.setSizePolicy(sizePolicy)
 		self.remove.setSizePolicy(sizePolicy)
 		self.remove.clicked.connect(self.removeDocuments)
 		self.remove.clicked.connect(self.checkRemoveButton)
 		self.docsLayout.addLayout(self.buttonsLayout)
 		self.add.clicked.connect(self.addDocuments)
-		self.ui.OK.clicked.connect(self.checkOutputPath)
 		self.ui.OK.clicked.connect(self.execute)
 		self.show()
 
@@ -62,7 +62,8 @@ class App(QMainWindow):
 			self.ui.rangePages.setDisabled(True)
 
 	def addDocuments(self):
-		additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", directory="/home/cabero/Downloads", filter='PDF Files (*.pdf)')
+		additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents",
+		                                         directory="/home/cabero/Downloads", filter='PDF Files (*.pdf)')
 		additions = [pdf for pdf in additions][0]
 		for index, doc in enumerate(additions):
 			checkbox = QtWidgets.QCheckBox(doc)
@@ -100,7 +101,6 @@ class App(QMainWindow):
 		self.ui.outputName.clear()
 
 	def mergeDocs(self, pdfs):
-		## TAKE THE PDFS VARIABLE FROM THE WIDGETS IN SELF.DOCSLAYOUT ##
 		new_file = self.ui.outputName.text()
 		merger = PdfFileMerger()
 		if pdfs:
@@ -114,8 +114,14 @@ class App(QMainWindow):
 		self.ui.openFile.setEnabled(True)
 
 	def execute(self):
-		pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
-		self.mergeDocs(pdfs=pdfs)
+		if os.path.exists(self.ui.outputName.text()):
+			decision = self.checkOutputPath()
+			if decision is True:
+				pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+				self.mergeDocs(pdfs=pdfs)
+		else:
+			pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+			self.mergeDocs(pdfs=pdfs)
 
 	def openFile(self):
 		folder = os.getcwd()
@@ -129,10 +135,19 @@ class App(QMainWindow):
 	def checkOutputPath(self):
 		if os.path.exists(self.ui.outputName.text()):
 			warning = QMessageBox()
-			warning.setIcon(QMessageBox.Warning)
-			warning.setText("The file name you have selected already exists.")
-			warning.setWindowTitle("Overwriting")
-			warning.exec_()
+			warning.setIcon(QMessageBox.Question)
+			warning.setText("The file name you have selected already exists. Do you wish to overwrite?")
+			warning.setWindowTitle("Path exists.")
+			warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+			warning.clickedButton()
+			button = warning.exec_()
+			yes = 16384
+			no = 65536
+			if button == yes:
+				return True
+			elif button == no:
+				return False
+
 
 	def extractPages(self, doc):
 
@@ -153,7 +168,7 @@ class App(QMainWindow):
 
 		with open("test.pdf", "wb") as outputStream:
 			output.write(outputStream)
-		# os.remove(new_folder)
+	# os.remove(new_folder)
 
 
 if __name__ == "__main__":
