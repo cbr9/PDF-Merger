@@ -32,14 +32,16 @@ class App(QMainWindow):
 		self.buttonsLayout = QtWidgets.QHBoxLayout()
 		self.buttonsLayout.addWidget(self.remove)
 		self.buttonsLayout.addWidget(self.add)
-		self.buttonsLayout.setAlignment(Qt.AlignTop)
 		self.sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
 		                                        QtWidgets.QSizePolicy.Expanding)
 		self.add.setSizePolicy(self.sizePolicy)
+		self.add.setMinimumSize(350, 50)
+		self.add.setMaximumSize(13000000, 50)
 		self.remove.setSizePolicy(self.sizePolicy)
+		self.remove.setMinimumSize(350, 50)
+		self.remove.setMaximumSize(13000000, 50)
 		self.remove.clicked.connect(self.removeDocuments)
 		self.remove.clicked.connect(self.checkRemoveButton)
-		self.docsLayout.setAlignment(Qt.AlignTop)
 		self.docsLayout.addLayout(self.buttonsLayout)
 		self.add.clicked.connect(self.addDocuments)
 		self.ui.OK.clicked.connect(self.execute)
@@ -98,7 +100,7 @@ class App(QMainWindow):
 				if widget.isChecked():
 					widget.deleteLater()
 					self.pdfs.remove(widget)
-		self.listDocs.resize(self.listDocs.minimumSize())
+					self.listDocs.resize(250, self.listDocs.minimumHeight())
 		self.checkRemoveButton()
 		self.enableRadios(self.pdfs)
 
@@ -125,16 +127,14 @@ class App(QMainWindow):
 		self.ui.openFile.setEnabled(True)
 
 	def execute(self):
+		self.updatePdfList()
 		if os.path.exists(self.ui.outputName.text()):
-			decision = self.checkOutputPath()
-			if decision is True:
-				pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if
-				        isinstance(widget, QtWidgets.QCheckBox)]
-				self.mergeDocs(pdfs=pdfs)
+			if self.overWrite():
+				self.mergeDocs(pdfs=self.pdfs_text)
+			else:
+				pass
 		else:
-			pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if
-			        isinstance(widget, QtWidgets.QCheckBox)]
-			self.mergeDocs(pdfs=pdfs)
+			self.mergeDocs(pdfs=self.pdfs_text)
 
 	def openFile(self):
 		folder = os.getcwd()
@@ -145,14 +145,13 @@ class App(QMainWindow):
 			opener = "xdg-open" if sys.platform == "linux" else "open"
 			subprocess.call([opener, file])
 
-	def checkOutputPath(self):
+	def overWrite(self):
 		if os.path.exists(self.ui.outputName.text()):
 			warning = QMessageBox()
 			warning.setIcon(QMessageBox.Question)
 			warning.setText("The file name you have selected already exists. Do you wish to overwrite?")
 			warning.setWindowTitle("Path exists.")
 			warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-			warning.clickedButton()
 			button = warning.exec_()
 			yes, no = 16384, 65536
 			if button == yes:
@@ -170,7 +169,7 @@ class App(QMainWindow):
 		range_ = self.ui.rangePages.text().split("-")
 		from_ = range_[0]
 		to_ = range_[1] if len(range_) == 2 else (from_ + 1)
-		every_ = range[2] if len(range_) == 3 else 1
+		every_ = range_[2] if len(range_) == 3 else 1
 		inputPdf = PdfFileReader(open(doc, "rb"))
 		output = PdfFileWriter()
 		for page in inputPdf.numPages[from_:to_:every_]:
