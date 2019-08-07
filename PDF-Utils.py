@@ -151,11 +151,11 @@ class App(QMainWindow):
                 warning.setText("The file name you have selected already exists. Do you wish to overwrite?")
                 warning.setWindowTitle("Path exists.")
                 warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                button = warning.exec_()
+                choice = warning.exec_()
                 yes, no = 16384, 65536
-                if button == yes:
+                if choice == yes:
                         return True
-                elif button == no:
+                elif choice == no:
                         return False
 
 	def extractPages(self, doc):
