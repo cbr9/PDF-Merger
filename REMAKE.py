@@ -32,7 +32,10 @@ class App(QMainWindow):
 		self.buttonsLayout = QtWidgets.QHBoxLayout()
 		self.buttonsLayout.addWidget(self.remove)
 		self.buttonsLayout.addWidget(self.add)
-		self.buttonsLayout.setAlignment(Qt.AlignBottom)
+		self.buttonsLayout.setAlignment(Qt.AlignTop)
+		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
+		self.add.setSizePolicy(sizePolicy)
+		self.remove.setSizePolicy(sizePolicy)
 		self.docsLayout.addLayout(self.buttonsLayout)
 		self.add.clicked.connect(self.addDocuments)
 		self.remove.clicked.connect(self.removeDocuments)
@@ -78,7 +81,7 @@ class App(QMainWindow):
 		for widget in self.subWidgets(layout=self.docsLayout):
 			if isinstance(widget, QtWidgets.QCheckBox):
 				if widget.isChecked():
-					self.docsLayout.removeWidget(widget)
+					widget.deleteLater()
 
 	def clearFields(self):
 		self.ui.openFile.setDisabled(True)
