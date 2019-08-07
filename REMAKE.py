@@ -3,7 +3,7 @@ import os
 import sys
 import subprocess
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
-from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMainWindow
+from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMainWindow, QMessageBox
 from PyQt5.QtCore import *
 from remakeUI import *
 
@@ -33,13 +33,13 @@ class App(QMainWindow):
 		self.buttonsLayout.addWidget(self.remove)
 		self.buttonsLayout.addWidget(self.add)
 		self.buttonsLayout.setAlignment(Qt.AlignTop)
-		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
+		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
 		self.add.setSizePolicy(sizePolicy)
 		self.remove.setSizePolicy(sizePolicy)
 		self.docsLayout.addLayout(self.buttonsLayout)
 		self.add.clicked.connect(self.addDocuments)
 		self.remove.clicked.connect(self.removeDocuments)
-		# self.ui.outputName.textChanged.connect(self.checkOutputPath)
+		self.ui.OK.clicked.connect(self.checkOutputPath)
 		self.show()
 
 	def editSelection(self):
@@ -71,6 +71,8 @@ class App(QMainWindow):
 			checkbox.setText(doc)
 			self.docsLayout.addWidget(checkbox)
 			self.docsLayout.setAlignment(Qt.AlignLeft)
+			self.docsLayout.minimumSize()
+			self.docsLayout.maximumSize()
 
 	@staticmethod
 	def subWidgets(layout):
@@ -82,12 +84,14 @@ class App(QMainWindow):
 			if isinstance(widget, QtWidgets.QCheckBox):
 				if widget.isChecked():
 					widget.deleteLater()
+					self.docsLayout.minimumSize()
+					self.docsLayout.maximumSize()
 
 	def clearFields(self):
 		self.ui.openFile.setDisabled(True)
 		self.ui.outputName.clear()
 
-	def mergeDocs(self):
+	def mergeDocs(self, pdfs):
 		## TAKE THE PDFS VARIABLE FROM THE WIDGETS IN SELF.DOCSLAYOUT ##
 		new_file = self.ui.outputName.text()
 		merger = PdfFileMerger()
@@ -109,9 +113,13 @@ class App(QMainWindow):
 			opener = "xdg-open" if sys.platform == "linux" else "open"
 			subprocess.call([opener, file])
 
-	# def checkOutputPath(self):
-	# 	if os.path.exists(self.ui.outputName):
-	#
+	def checkOutputPath(self):
+		if os.path.exists(self.ui.outputName.text()):
+			warning = QMessageBox()
+			warning.setIcon(QMessageBox.Warning)
+			warning.setText("The file name you have selected already exists.")
+			warning.setWindowTitle("Overwriting")
+			warning.exec_()
 
 	def extractPages(self, doc):
 
@@ -121,7 +129,6 @@ class App(QMainWindow):
 		except FileExistsError:
 			pass
 
-		### ADD AN OVERWRITE FAILSAFE ###
 		range_ = self.ui.rangePages.text().split("-")
 		from_ = range_[0]
 		to_ = range_[1] if len(range_) == 2 else (from_ + 1)
