@@ -21,6 +21,7 @@ class App(QMainWindow):
 		self.ui.extractPages.toggled.connect(self.ui.rangePages.setEnabled)
 		self.ui.openFile.setDisabled(True)
 		self.ui.mergeDocs.setDisabled(True)
+		self.ui.clearFields.setDisabled(True)
 		self.ui.clearFields.clicked.connect(self.clearFields)
 		self.listDocs = QDialog(self)
 		self.docsLayout = QtWidgets.QVBoxLayout(self.listDocs)
@@ -32,13 +33,13 @@ class App(QMainWindow):
 		self.buttonsLayout.addWidget(self.remove)
 		self.buttonsLayout.addWidget(self.add)
 		self.buttonsLayout.setAlignment(Qt.AlignTop)
-		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-		                                   QtWidgets.QSizePolicy.MinimumExpanding)
-		self.add.setSizePolicy(sizePolicy)
-		self.remove.setSizePolicy(sizePolicy)
+		self.sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+		                                        QtWidgets.QSizePolicy.Expanding)
+		self.add.setSizePolicy(self.sizePolicy)
+		self.remove.setSizePolicy(self.sizePolicy)
 		self.remove.clicked.connect(self.removeDocuments)
 		self.remove.clicked.connect(self.checkRemoveButton)
-		self.docsLayout.setAlignment(Qt.AlignLeft)
+		self.docsLayout.setAlignment(Qt.AlignTop)
 		self.docsLayout.addLayout(self.buttonsLayout)
 		self.add.clicked.connect(self.addDocuments)
 		self.ui.OK.clicked.connect(self.execute)
@@ -75,7 +76,7 @@ class App(QMainWindow):
 				checkbox = QtWidgets.QCheckBox(doc)
 				checkbox.setText(doc)
 				self.pdfs.append(checkbox)
-				self.docsLayout.addWidget(checkbox)
+				self.docsLayout.addWidget(checkbox, index)
 		self.remove.setEnabled(True)
 		self.enableRadios(self.pdfs)
 
@@ -92,12 +93,12 @@ class App(QMainWindow):
 
 	def removeDocuments(self):
 		self.updatePdfList()
-		print(self.pdfs)
 		for widget in self.subWidgets(self.docsLayout):
 			if isinstance(widget, QtWidgets.QCheckBox):
 				if widget.isChecked():
 					widget.deleteLater()
 					self.pdfs.remove(widget)
+		self.listDocs.resize(self.listDocs.minimumSize())
 		self.checkRemoveButton()
 		self.enableRadios(self.pdfs)
 
@@ -127,10 +128,12 @@ class App(QMainWindow):
 		if os.path.exists(self.ui.outputName.text()):
 			decision = self.checkOutputPath()
 			if decision is True:
-				pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+				pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if
+				        isinstance(widget, QtWidgets.QCheckBox)]
 				self.mergeDocs(pdfs=pdfs)
 		else:
-			pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+			pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if
+			        isinstance(widget, QtWidgets.QCheckBox)]
 			self.mergeDocs(pdfs=pdfs)
 
 	def openFile(self):
@@ -175,7 +178,7 @@ class App(QMainWindow):
 
 		with open("test.pdf", "wb") as outputStream:
 			output.write(outputStream)
-	# os.remove(new_folder)
+# os.remove(new_folder)
 
 
 if __name__ == "__main__":
