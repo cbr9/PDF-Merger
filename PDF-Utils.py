@@ -146,18 +146,17 @@ class App(QMainWindow):
 			subprocess.call([opener, file])
 
 	def overWrite(self):
-		if os.path.exists(self.ui.outputName.text()):
-			warning = QMessageBox()
-			warning.setIcon(QMessageBox.Question)
-			warning.setText("The file name you have selected already exists. Do you wish to overwrite?")
-			warning.setWindowTitle("Path exists.")
-			warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-			button = warning.exec_()
-			yes, no = 16384, 65536
-			if button == yes:
-				return True
-			elif button == no:
-				return False
+                warning = QMessageBox()
+                warning.setIcon(QMessageBox.Question)
+                warning.setText("The file name you have selected already exists. Do you wish to overwrite?")
+                warning.setWindowTitle("Path exists.")
+                warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                button = warning.exec_()
+                yes, no = 16384, 65536
+                if button == yes:
+                        return True
+                elif button == no:
+                        return False
 
 	def extractPages(self, doc):
 		new_folder = ".temp"
