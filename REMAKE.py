@@ -20,13 +20,12 @@ class App(QMainWindow):
 		self.ui.extractPages.setDisabled(True)
 		self.ui.extractPages.toggled.connect(self.ui.rangePages.setEnabled)
 		self.ui.openFile.setDisabled(True)
-		self.ui.editListOfDocs.setDisabled(True)
 		self.ui.mergeDocs.setDisabled(True)
 		self.ui.clearFields.clicked.connect(self.clearFields)
-		self.ui.selectDocs.clicked.connect(self.selectDocuments)
 		self.listDocs = QDialog(self)
 		self.docsLayout = QtWidgets.QVBoxLayout(self.listDocs)
 		self.ui.editListOfDocs.clicked.connect(self.editSelection)
+		self.ui.editListOfDocs.clicked.connect(self.checkRemoveButton)
 		self.remove = QtWidgets.QPushButton(text="Remove")
 		self.add = QtWidgets.QPushButton(text="Add")
 		self.buttonsLayout = QtWidgets.QHBoxLayout()
@@ -36,56 +35,65 @@ class App(QMainWindow):
 		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
 		self.add.setSizePolicy(sizePolicy)
 		self.remove.setSizePolicy(sizePolicy)
+		self.remove.clicked.connect(self.removeDocuments)
+		self.remove.clicked.connect(self.checkRemoveButton)
 		self.docsLayout.addLayout(self.buttonsLayout)
 		self.add.clicked.connect(self.addDocuments)
-		self.remove.clicked.connect(self.removeDocuments)
 		self.ui.OK.clicked.connect(self.checkOutputPath)
+		self.ui.OK.clicked.connect(self.execute)
 		self.show()
 
 	def editSelection(self):
 		self.listDocs.show()
 
-	def selectDocuments(self):
-		pdfs = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')
-		pdfs = [pdf for pdf in pdfs][0]
-		for index, doc in enumerate(pdfs):
-			checkbox = QtWidgets.QCheckBox(doc)
-			checkbox.setText(doc)
-			self.docsLayout.addWidget(checkbox)
-			self.docsLayout.setAlignment(Qt.AlignLeft)
-		if pdfs:
-			self.ui.editListOfDocs.setEnabled(True)
-		if len(pdfs) == 1:
-			self.ui.extractPages.setEnabled(True)
-			self.ui.mergeDocs.setDisabled(True)
+	def enableRadios(self, pdfs):
+		if len(pdfs) >= 1:
+			if len(pdfs) == 1:
+				self.ui.extractPages.setEnabled(True)
+				self.ui.rangePages.setEnabled(True)
+				self.ui.mergeDocs.setDisabled(True)
+			elif len(pdfs) > 1:
+				self.ui.mergeDocs.setEnabled(True)
+				self.ui.extractPages.setDisabled(True)
+				self.ui.rangePages.setDisabled(True)
 		else:
-			self.ui.mergeDocs.setEnabled(True)
+			self.ui.mergeDocs.setDisabled(True)
 			self.ui.extractPages.setDisabled(True)
 			self.ui.rangePages.setDisabled(True)
 
 	def addDocuments(self):
-		additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')
+		additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", directory="/home/cabero/Downloads", filter='PDF Files (*.pdf)')
 		additions = [pdf for pdf in additions][0]
 		for index, doc in enumerate(additions):
 			checkbox = QtWidgets.QCheckBox(doc)
 			checkbox.setText(doc)
 			self.docsLayout.addWidget(checkbox)
 			self.docsLayout.setAlignment(Qt.AlignLeft)
-			self.docsLayout.minimumSize()
-			self.docsLayout.maximumSize()
+		self.remove.setEnabled(True)
+		pdfs = [widget for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+		self.enableRadios(pdfs)
 
 	@staticmethod
 	def subWidgets(layout):
 		widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
 		return widgets
 
+	def checkRemoveButton(self):
+		remaining = [widget for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+		if len(remaining) != 0:
+			self.remove.setEnabled(True)
+		else:
+			self.remove.setDisabled(True)
+
 	def removeDocuments(self):
-		for widget in self.subWidgets(layout=self.docsLayout):
+		pdfs = [widget for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+		for widget in self.subWidgets(self.docsLayout):
 			if isinstance(widget, QtWidgets.QCheckBox):
 				if widget.isChecked():
 					widget.deleteLater()
-					self.docsLayout.minimumSize()
-					self.docsLayout.maximumSize()
+					pdfs.remove(widget)
+		self.checkRemoveButton()
+		self.enableRadios(pdfs)
 
 	def clearFields(self):
 		self.ui.openFile.setDisabled(True)
@@ -105,8 +113,13 @@ class App(QMainWindow):
 		merger.write(new_file)
 		self.ui.openFile.setEnabled(True)
 
+	def execute(self):
+		pdfs = [widget.text() for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+		self.mergeDocs(pdfs=pdfs)
+
 	def openFile(self):
-		file = self.ui.outputName.text()
+		folder = os.getcwd()
+		file = os.path.join(folder, self.ui.outputName.text())
 		if sys.platform == "win32":
 			os.startfile(file)
 		else:
