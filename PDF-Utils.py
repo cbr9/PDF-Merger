@@ -38,6 +38,7 @@ class App(QMainWindow):
 		self.remove.setSizePolicy(sizePolicy)
 		self.remove.clicked.connect(self.removeDocuments)
 		self.remove.clicked.connect(self.checkRemoveButton)
+		self.docsLayout.setAlignment(Qt.AlignLeft)
 		self.docsLayout.addLayout(self.buttonsLayout)
 		self.add.clicked.connect(self.addDocuments)
 		self.ui.OK.clicked.connect(self.execute)
@@ -45,6 +46,11 @@ class App(QMainWindow):
 
 	def editSelection(self):
 		self.listDocs.show()
+		self.updatePdfList()
+
+	def updatePdfList(self):
+		self.pdfs = [widget for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+		self.pdfs_text = [widget.text() for widget in self.pdfs]
 
 	def enableRadios(self, pdfs):
 		if len(pdfs) >= 1:
@@ -62,17 +68,16 @@ class App(QMainWindow):
 			self.ui.rangePages.setDisabled(True)
 
 	def addDocuments(self):
-		additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents",
-		                                         directory="/home/cabero/Downloads", filter='PDF Files (*.pdf)')
-		additions = [pdf for pdf in additions][0]
+		self.updatePdfList()
+		additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')[0]
 		for index, doc in enumerate(additions):
-			checkbox = QtWidgets.QCheckBox(doc)
-			checkbox.setText(doc)
-			self.docsLayout.addWidget(checkbox)
-			self.docsLayout.setAlignment(Qt.AlignLeft)
+			if doc not in self.pdfs_text:
+				checkbox = QtWidgets.QCheckBox(doc)
+				checkbox.setText(doc)
+				self.pdfs.append(checkbox)
+				self.docsLayout.addWidget(checkbox)
 		self.remove.setEnabled(True)
-		pdfs = [widget for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
-		self.enableRadios(pdfs)
+		self.enableRadios(self.pdfs)
 
 	@staticmethod
 	def subWidgets(layout):
@@ -80,25 +85,30 @@ class App(QMainWindow):
 		return widgets
 
 	def checkRemoveButton(self):
-		remaining = [widget for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
-		if len(remaining) != 0:
+		if len(self.pdfs) != 0:
 			self.remove.setEnabled(True)
 		else:
 			self.remove.setDisabled(True)
 
 	def removeDocuments(self):
-		pdfs = [widget for widget in self.subWidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+		self.updatePdfList()
+		print(self.pdfs)
 		for widget in self.subWidgets(self.docsLayout):
 			if isinstance(widget, QtWidgets.QCheckBox):
 				if widget.isChecked():
 					widget.deleteLater()
-					pdfs.remove(widget)
+					self.pdfs.remove(widget)
 		self.checkRemoveButton()
-		self.enableRadios(pdfs)
+		self.enableRadios(self.pdfs)
 
 	def clearFields(self):
 		self.ui.openFile.setDisabled(True)
 		self.ui.outputName.clear()
+		for widget in self.subWidgets(self.docsLayout):
+			if isinstance(widget, QtWidgets.QCheckBox):
+				widget.deleteLater()
+				self.pdfs.remove(widget)
+		self.updatePdfList()
 
 	def mergeDocs(self, pdfs):
 		new_file = self.ui.outputName.text()
@@ -141,16 +151,13 @@ class App(QMainWindow):
 			warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 			warning.clickedButton()
 			button = warning.exec_()
-			yes = 16384
-			no = 65536
+			yes, no = 16384, 65536
 			if button == yes:
 				return True
 			elif button == no:
 				return False
 
-
 	def extractPages(self, doc):
-
 		new_folder = ".temp"
 		try:
 			os.mkdir(new_folder)
