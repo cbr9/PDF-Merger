@@ -5,7 +5,7 @@ import subprocess
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMainWindow, QMessageBox
 from PyQt5.QtCore import *
-from remakeUI import *
+from UserInterface import *
 
 
 class App(QMainWindow):
@@ -14,7 +14,7 @@ class App(QMainWindow):
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
 		self.setWindowTitle("PDF Utils")
-		self.setWindowIcon(QtGui.QIcon('/usr/share/pixmaps/PDF Merger.png'))
+		self.setWindowIcon(QtGui.QIcon('icon.png'))
 		self.ui.openFile.clicked.connect(self.openFile)
 		self.ui.rangePages.setDisabled(True)
 		self.ui.extractPages.setDisabled(True)
