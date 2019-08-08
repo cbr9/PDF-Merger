@@ -1,10 +1,12 @@
 import os
-import sys
 import subprocess
+import sys
+from typing import List, Union
+
 # noinspection PyProtectedMember
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
-from typing import List, Union
 from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMainWindow, QMessageBox
+
 from UserInterface import *
 
 
@@ -93,10 +95,11 @@ class App(QMainWindow):
         return widgets
 
     def check_remove_button(self):
-        if len(self.pdfs) != 0:
-            self.remove.setEnabled(True)
-        else:
-            self.remove.setDisabled(True)
+        if hasattr(self, "pdfs"):
+            if len(self.pdfs) != 0:
+                self.remove.setEnabled(True)
+            else:
+                self.remove.setDisabled(True)
 
     def remove_documents(self):
         self.update_pdf_list()
