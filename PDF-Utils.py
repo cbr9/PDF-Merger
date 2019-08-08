@@ -84,7 +84,7 @@ class App(QMainWindow):
                 self.pdfs.append(checkbox)
                 self.docsLayout.addWidget(checkbox, index)
         self.remove.setEnabled(True)
-        self.enable_radios(self.pdfs)
+        self.enable_radios(pdfs=self.pdfs)
         self.update_pdf_list()
 
     @staticmethod
@@ -107,7 +107,7 @@ class App(QMainWindow):
                     self.pdfs.remove(widget)
                     self.listDocs.resize(250, self.listDocs.minimumHeight())
         self.check_remove_button()
-        self.enable_radios(self.pdfs)
+        self.enable_radios(pdfs=self.pdfs)
         self.update_pdf_list()
 
     def clear_fields(self):
