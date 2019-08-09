@@ -93,7 +93,7 @@ class App(QMainWindow):
         self.update_pdf_list()
         # select the first element because otherwise the filter gets added to the list, don't touch this
         additions: List[str] = \
-        QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')[0]
+            QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')[0]
         for index, doc in enumerate(additions):
             doc: str = os.path.abspath(doc)
             if doc not in self.pdfs_text:
@@ -137,26 +137,25 @@ class App(QMainWindow):
                 self.pdfs.remove(widget)
         self.update_pdf_list()
         # the checkedId() method returns -1 if no radio button is checked
-        if self.ui.options.checkedId() != -1:  # if some of the two buttons was checked
+        if self.ui.options.checkedId() == -1:  # if no button was checked
+            self.ui.mergeDocs.setDisabled(True)
+            self.ui.extractPages.setDisabled(True)
+        else:  # if some of the two buttons was checked
             self.ui.options.setExclusive(False)
             self.ui.options.checkedButton().setDisabled(True)
             self.ui.options.checkedButton().setChecked(False)
             self.ui.options.setExclusive(True)
-        else:
-            self.ui.mergeDocs.setDisabled(True)
-            self.ui.extractPages.setDisabled(True)
         self.ui.clearFields.setDisabled(True)
         self.ui.rangePages.clear()
 
     def merge_docs(self, pdfs: List) -> None:
         new_file: str = self.ui.outputName.text()
-        merger = PdfFileMerger()
+        merger = PdfFileMerger(strict=False)
         if pdfs:
-            while pdfs:
-                pdf = pdfs[0]
+            for pdf in pdfs:
                 with open(file=pdf, mode="rb") as file:
-                    file = PdfFileReader(file)
-                    merger.append(file)
+                    file = PdfFileReader(file, strict=False)
+                    merger.append(file, import_bookmarks=False)
                 pdfs.remove(pdf)
         merger.write(new_file)
         self.ui.openFile.setEnabled(True)
@@ -185,8 +184,7 @@ class App(QMainWindow):
 
     def extract_pages(self, doc: str) -> None:
         range_: List[str] = self.ui.rangePages.text().split(",")
-        individual_pages: List[str] = [x for x in range_ if "-" not in x]
-        individual_pages: List[int] = list(map(lambda i: int(i), individual_pages))
+        individual_pages: List[int] = [int(x) for x in range_ if "-" not in x]
         ranges: List[str] = [x for x in range_ if "-" in x]
         del range_
         with open(file=doc, mode="rb") as input_pdf:
