@@ -3,7 +3,7 @@
 import os
 import subprocess
 import sys
-from typing import List, Union
+from typing import List, Union, Generator
 
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMainWindow, QMessageBox
@@ -49,34 +49,32 @@ class App(QMainWindow):
         self.ui.OK.clicked.connect(self.execute)
         self.ui.outputName.textChanged.connect(self.enable_clear_fields)
         self.ui.readmeFile.clicked.connect(self.open_readme)
+        self.pdfs: List[QtWidgets.QCheckBox] = []
+        self.pdfs_text: List[str] = []
         self.show()
 
-    def edit_selection(self):
+    def edit_selection(self) -> None:
         self.listDocs.show()
 
-    def open_readme(self):
-        file = os.path.abspath("README.md")
+    @staticmethod
+    def open_readme() -> None:
+        file: str = os.path.abspath("README.md")
         if sys.platform == "win32":
             os.startfile(file)
         else:
-            opener = "xdg-open" if sys.platform == "linux" else "open"
+            opener: str = "xdg-open" if sys.platform == "linux" else "open"
             subprocess.call([opener, file])
 
-    def update_pdf_list(self):
-        if not hasattr(self, "pdfs"):
-            setattr(self, "pdfs", [widget for widget in self.subwidgets(self.docsLayout)
-                                   if isinstance(widget, QtWidgets.QCheckBox)])
-            setattr(self, "pdfs_text", [widget.text() for widget in self.pdfs])
-        else:
-            self.pdfs = [widget for widget in self.subwidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
-            self.pdfs_text = [widget.text() for widget in self.pdfs]
+    def update_pdf_list(self) -> None:
+        self.pdfs = [widget for widget in self.subwidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
+        self.pdfs_text = [widget.text() for widget in self.pdfs]
         self.enable_clear_fields()
 
-    def enable_clear_fields(self):
-        if (hasattr(self, "pdfs") and self.pdfs != []) or self.ui.outputName.text() != "" or self.ui.mergeDocs.isChecked() or self.ui.extractPages.isChecked():
+    def enable_clear_fields(self) -> None:
+        if self.pdfs != [] or self.ui.outputName.text() != "" or self.ui.mergeDocs.isChecked() or self.ui.extractPages.isChecked():
             self.ui.clearFields.setEnabled(True)
 
-    def enable_radios(self, pdfs: List):
+    def enable_radios(self, pdfs: List) -> None:
         if len(pdfs) >= 1:
             if len(pdfs) == 1:
                 self.ui.extractPages.setEnabled(True)
@@ -90,13 +88,14 @@ class App(QMainWindow):
             self.ui.mergeDocs.setDisabled(True)
             self.ui.extractPages.setDisabled(True)
             self.ui.rangePages.setDisabled(True)
-        self.enable_clear_fields()
 
-    def add_documents(self):
+    def add_documents(self) -> None:
         self.update_pdf_list()
-        additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')[0]
+        # select the first element because otherwise the filter gets added to the list, don't touch this
+        additions: List[str] = \
+        QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')[0]
         for index, doc in enumerate(additions):
-            doc = os.path.abspath(doc)
+            doc: str = os.path.abspath(doc)
             if doc not in self.pdfs_text:
                 checkbox = QtWidgets.QCheckBox(doc)
                 checkbox.setText(doc)
@@ -107,18 +106,17 @@ class App(QMainWindow):
         self.update_pdf_list()
 
     @staticmethod
-    def subwidgets(layout: Union[QtWidgets.QHBoxLayout, QtWidgets.QVBoxLayout, QtWidgets.QGridLayout]):
-        widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
+    def subwidgets(layout: Union[QtWidgets.QHBoxLayout, QtWidgets.QVBoxLayout, QtWidgets.QGridLayout]) -> Generator:
+        widgets: Generator = (layout.itemAt(i).widget() for i in range(layout.count()))
         return widgets
 
-    def check_remove_button(self):
-        if hasattr(self, "pdfs"):
-            if len(self.pdfs) != 0:
-                self.remove.setEnabled(True)
-            else:
-                self.remove.setDisabled(True)
+    def check_remove_button(self) -> None:
+        if len(self.pdfs) != 0:
+            self.remove.setEnabled(True)
+        else:
+            self.remove.setDisabled(True)
 
-    def remove_documents(self):
+    def remove_documents(self) -> None:
         self.update_pdf_list()
         for widget in self.subwidgets(self.docsLayout):
             if isinstance(widget, QtWidgets.QCheckBox):
@@ -130,7 +128,7 @@ class App(QMainWindow):
         self.enable_radios(pdfs=self.pdfs)
         self.update_pdf_list()
 
-    def clear_fields(self):
+    def clear_fields(self) -> None:
         self.ui.openFile.setDisabled(True)
         self.ui.outputName.clear()
         for widget in self.subwidgets(self.docsLayout):
@@ -138,6 +136,7 @@ class App(QMainWindow):
                 widget.deleteLater()
                 self.pdfs.remove(widget)
         self.update_pdf_list()
+        # the checkedId() method returns -1 if no radio button is checked
         if self.ui.options.checkedId() != -1:  # if some of the two buttons was checked
             self.ui.options.setExclusive(False)
             self.ui.options.checkedButton().setDisabled(True)
@@ -149,8 +148,8 @@ class App(QMainWindow):
         self.ui.clearFields.setDisabled(True)
         self.ui.rangePages.clear()
 
-    def merge_docs(self, pdfs: List):
-        new_file = self.ui.outputName.text()
+    def merge_docs(self, pdfs: List) -> None:
+        new_file: str = self.ui.outputName.text()
         merger = PdfFileMerger()
         if pdfs:
             while pdfs:
@@ -162,63 +161,68 @@ class App(QMainWindow):
         merger.write(new_file)
         self.ui.openFile.setEnabled(True)
 
-    def open_file(self):
-        current_folder = os.getcwd()
-        file = os.path.join(current_folder, self.ui.outputName.text())
+    def open_file(self) -> None:
+        current_folder: str = os.getcwd()
+        file: str = os.path.join(current_folder, self.ui.outputName.text())
         if sys.platform == "win32":
             os.startfile(file)
         else:
-            opener = "xdg-open" if sys.platform == "linux" else "open"
+            opener: str = "xdg-open" if sys.platform == "linux" else "open"
             subprocess.call([opener, file])
 
     @staticmethod
-    def overwrite():
+    def overwrite() -> bool:
         warning = QMessageBox()
         warning.setIcon(QMessageBox.Question)
         warning.setText("The file name you have selected already exists. Do you wish to overwrite?")
         warning.setWindowTitle("Path exists.")
         warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         choice = warning.exec_()
+        # the dialog emits two signals: 16384 if the users click yes, and 65536 if they click no
         yes, no = 16384, 65536
-        if choice == yes:
-            return True
-        elif choice == no:
-            return False
+        choice = True if (choice == yes) else False
+        return choice
 
-    def extract_pages(self, doc: str):
-        range_ = self.ui.rangePages.text().split(",")
-        individual_pages = [x for x in range_ if "-" not in x]
-        individual_pages = list(map(lambda i: int(i), individual_pages))
-        ranges = [x for x in range_ if "-" in x]
+    def extract_pages(self, doc: str) -> None:
+        range_: List[str] = self.ui.rangePages.text().split(",")
+        individual_pages: List[str] = [x for x in range_ if "-" not in x]
+        individual_pages: List[int] = list(map(lambda i: int(i), individual_pages))
+        ranges: List[str] = [x for x in range_ if "-" in x]
         del range_
         with open(file=doc, mode="rb") as input_pdf:
             input_pdf = PdfFileReader(input_pdf)
             output_pdf = PdfFileWriter()
+            page: int
             for page in individual_pages:
                 output_pdf.addPage(input_pdf.getPage(page - 1))
             for range_ in ranges:
-                range_ = list(map(lambda i: int(i), range_.split("-")))
-                from_ = range_[0] - 1
-                to_ = range_[1]
-                every_ = range_[2] if len(range_) == 3 else 1
+                range_: str
+                range_: List[int] = [int(i) for i in range_.split("-")]
+                from_: int = range_[0] - 1
+                to_: int = range_[1]
+                every_: int = range_[2] if len(range_) == 3 else 1
                 for page in range(from_, to_, every_):
                     output_pdf.addPage(input_pdf.getPage(page))
             with open(file=self.ui.outputName.text(), mode="wb") as outputStream:
                 output_pdf.write(outputStream)
         self.ui.openFile.setEnabled(True)
 
-    def execute(self):
+    def execute(self) -> None:
         if os.path.exists(self.ui.outputName.text()):
             if self.overwrite():
                 if self.ui.mergeDocs.isChecked():
                     self.merge_docs(pdfs=self.pdfs_text)
                 elif self.ui.extractPages.isChecked():
                     self.extract_pages(doc=self.pdfs_text[0])
+                # else:
+                # SHOW WARNING
         else:
             if self.ui.mergeDocs.isChecked():
                 self.merge_docs(pdfs=self.pdfs_text)
             elif self.ui.extractPages.isChecked():
                 self.extract_pages(doc=self.pdfs_text[0])
+            # else:
+            # SHOW WARNING
 
 
 if __name__ == "__main__":
