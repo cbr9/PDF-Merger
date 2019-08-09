@@ -170,16 +170,19 @@ class App(QMainWindow):
         print(individual_pages)
         ranges = [x for x in range_ if "-" in x]
         del range_
-        # from_ = range_[0]
-        # to_ = range_[1] if len(range_) == 2 else (from_ + 1)
-        # every_ = range_[2] if len(range_) == 3 else 1
         with open(file=doc, mode="rb") as input_pdf:
             input_pdf = PdfFileReader(input_pdf)
             output_pdf = PdfFileWriter()
             for page in individual_pages:
                 output_pdf.addPage(input_pdf.getPage(page - 1))
             for range_ in ranges:
+                range_ = list(map(lambda i: int(i), range_.split("-")))
                 print(range_)
+                from_ = range_[0] - 1
+                to_ = range_[1]
+                every_ = range_[2] if len(range_) == 3 else 1
+                for page in range(from_, to_, every_):
+                    output_pdf.addPage(input_pdf.getPage(page))
             with open(file=self.ui.outputName.text(), mode="wb") as outputStream:
                 output_pdf.write(outputStream)
 
