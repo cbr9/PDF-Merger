@@ -14,7 +14,8 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(733, 505)
-        MainWindow.setMinimumSize(QtCore.QSize(733, 497))
+        MainWindow.setMinimumSize(QtCore.QSize(733, 505))
+        MainWindow.setMaximumSize(QtCore.QSize(750, 505))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
