@@ -80,6 +80,8 @@ class App(QMainWindow):
         self.update_pdf_list()
         additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')[0]
         for index, doc in enumerate(additions):
+            doc = os.path.abspath(doc)
+            print(doc)
             if doc not in self.pdfs_text:
                 checkbox = QtWidgets.QCheckBox(doc)
                 checkbox.setText(doc)
@@ -135,14 +137,6 @@ class App(QMainWindow):
         merger.write(new_file)
         self.ui.openFile.setEnabled(True)
 
-    def execute(self):
-        if os.path.exists(self.ui.outputName.text()):
-            if self.overwrite():
-                self.merge_docs(pdfs=self.pdfs_text)
-            else:
-                pass
-        else:
-            self.merge_docs(pdfs=self.pdfs_text)
 
     # noinspection PyUnresolvedReferences
     def open_file(self):
@@ -169,24 +163,38 @@ class App(QMainWindow):
             return False
 
     def extract_pages(self, doc: str):
-        new_folder = ".temp"
-        try:
-            os.mkdir(new_folder)
-        except FileExistsError:
-            pass
+        range_ = self.ui.rangePages.text().split(",")
+        print(range_)
+        individual_pages = [x for x in range_ if "-" not in x]
+        individual_pages = list(map(lambda i: int(i), individual_pages))
+        print(individual_pages)
+        ranges = [x for x in range_ if "-" in x]
+        del range_
+        # from_ = range_[0]
+        # to_ = range_[1] if len(range_) == 2 else (from_ + 1)
+        # every_ = range_[2] if len(range_) == 3 else 1
+        with open(file=doc, mode="rb") as input_pdf:
+            input_pdf = PdfFileReader(input_pdf)
+            output_pdf = PdfFileWriter()
+            for page in individual_pages:
+                output_pdf.addPage(input_pdf.getPage(page - 1))
+            for range_ in ranges:
+                print(range_)
+            with open(file=self.ui.outputName.text(), mode="wb") as outputStream:
+                output_pdf.write(outputStream)
 
-        range_ = self.ui.rangePages.text().split("-")
-        from_ = range_[0]
-        to_ = range_[1] if len(range_) == 2 else (from_ + 1)
-        every_ = range_[2] if len(range_) == 3 else 1
-        input_pdf = PdfFileReader(open(file=doc, mode="rb"))
-        output = PdfFileWriter()
-        for page in input_pdf.numPages[from_:to_:every_]:
-            output.addPage(input_pdf.getPage(page))
-
-        with open("test.pdf", "wb") as outputStream:
-            output.write(outputStream)
-        # os.remove(new_folder)
+    def execute(self):
+        if os.path.exists(self.ui.outputName.text()):
+            if self.overwrite():
+                if self.ui.mergeDocs.isChecked():
+                    self.merge_docs(pdfs=self.pdfs_text)
+                elif self.ui.extractPages.isChecked():
+                    self.extract_pages(doc=self.pdfs_text[0])
+        else:
+            if self.ui.mergeDocs.isChecked():
+                self.merge_docs(pdfs=self.pdfs_text)
+            elif self.ui.extractPages.isChecked():
+                self.extract_pages(doc=self.pdfs_text[0])
 
 
 if __name__ == "__main__":

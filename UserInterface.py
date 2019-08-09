@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'remake.ui'
+# Form implementation generated from reading ui file 'UserInterface.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.0
 #
@@ -190,7 +190,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.extractPages.setText(_translate("MainWindow", "Extract Pages:  "))
-        self.rangePages.setPlaceholderText(_translate("MainWindow", "Ex.: 1-30-2 (from page 1 to 30 picking out every two pages)"))
+        self.rangePages.setPlaceholderText(_translate("MainWindow", "Ex.: 1,2,3-30-2 (pages 1 and 2 and from page 3 to 30 picking out every two pages)"))
         self.mergeDocs.setText(_translate("MainWindow", "Merge"))
         self.outputLabel.setText(_translate("MainWindow", "OUTPUT"))
         self.outputName.setPlaceholderText(_translate("MainWindow", "Select a name for the output file (it must end in \".pdf\")"))

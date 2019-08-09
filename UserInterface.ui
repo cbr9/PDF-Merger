@@ -94,7 +94,7 @@
           <string/>
          </property>
          <property name="placeholderText">
-          <string>Ex.: 1-30-2 (from page 1 to 30 picking out every two pages)</string>
+          <string>Ex.: 1,2,3-30-2 (pages 1 and 2 and from page 3 to 30 picking out every two pages)</string>
          </property>
         </widget>
        </item>
