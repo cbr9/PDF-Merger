@@ -4,8 +4,10 @@ import os
 import subprocess
 import sys
 from typing import List, Union
+
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMainWindow, QMessageBox
+
 from UserInterface import *
 
 
@@ -203,23 +205,20 @@ class App(QMainWindow):
                     output_pdf.addPage(input_pdf.getPage(page))
             with open(file=self.ui.outputName.text(), mode="wb") as outputStream:
                 output_pdf.write(outputStream)
+        self.ui.openFile.setEnabled(True)
 
     def execute(self):
         if os.path.exists(self.ui.outputName.text()):
             if self.overwrite():
                 if self.ui.mergeDocs.isChecked():
                     self.merge_docs(pdfs=self.pdfs_text)
-                    self.ui.openFile.setEnabled(True)
                 elif self.ui.extractPages.isChecked():
                     self.extract_pages(doc=self.pdfs_text[0])
-                    self.ui.openFile.setEnabled(True)
         else:
             if self.ui.mergeDocs.isChecked():
                 self.merge_docs(pdfs=self.pdfs_text)
-                self.ui.openFile.setEnabled(True)
             elif self.ui.extractPages.isChecked():
                 self.extract_pages(doc=self.pdfs_text[0])
-                self.ui.openFile.setEnabled(True)
 
 
 if __name__ == "__main__":
