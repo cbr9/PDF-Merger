@@ -2,11 +2,8 @@ import os
 import subprocess
 import sys
 from typing import List, Union
-
-# noinspection PyProtectedMember
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QMainWindow, QMessageBox
-
 from UserInterface import *
 
 
@@ -51,7 +48,6 @@ class App(QMainWindow):
     def edit_selection(self):
         self.listDocs.show()
 
-    # noinspection PyAttributeOutsideInit
     def update_pdf_list(self):
         if not hasattr(self, "pdfs"):
             setattr(self, "pdfs", [widget for widget in self.subwidgets(self.docsLayout)
@@ -137,8 +133,6 @@ class App(QMainWindow):
         merger.write(new_file)
         self.ui.openFile.setEnabled(True)
 
-
-    # noinspection PyUnresolvedReferences
     def open_file(self):
         folder = os.getcwd()
         file = os.path.join(folder, self.ui.outputName.text())
@@ -164,10 +158,8 @@ class App(QMainWindow):
 
     def extract_pages(self, doc: str):
         range_ = self.ui.rangePages.text().split(",")
-        print(range_)
         individual_pages = [x for x in range_ if "-" not in x]
         individual_pages = list(map(lambda i: int(i), individual_pages))
-        print(individual_pages)
         ranges = [x for x in range_ if "-" in x]
         del range_
         with open(file=doc, mode="rb") as input_pdf:
@@ -177,7 +169,6 @@ class App(QMainWindow):
                 output_pdf.addPage(input_pdf.getPage(page - 1))
             for range_ in ranges:
                 range_ = list(map(lambda i: int(i), range_.split("-")))
-                print(range_)
                 from_ = range_[0] - 1
                 to_ = range_[1]
                 every_ = range_[2] if len(range_) == 3 else 1
