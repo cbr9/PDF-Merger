@@ -2,7 +2,7 @@
 Simple program I made for myself, written in Python and Qt5 to merge several PDFs and extract pages. The OK button still requires some tweaking.
 
 
-# OPTIONS:
+# Options:
 
 There are two options, mainly "merge" and "extract pages". The first only works when you select two or more documents, and it merges them in the order they were selected
 (I plan to change the working to allow changing the order). The latter is only available when you select ONE document. You can select complex ranges. E.g.:
