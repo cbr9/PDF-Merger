@@ -45,10 +45,20 @@ class App(QMainWindow):
         self.docsLayout.addLayout(self.buttonsLayout)
         self.add.clicked.connect(self.add_documents)
         self.ui.OK.clicked.connect(self.execute)
+        self.ui.outputName.textChanged.connect(self.enable_clear_fields)
+        self.ui.readmeFile.clicked.connect(self.open_readme)
         self.show()
 
     def edit_selection(self):
         self.listDocs.show()
+
+    def open_readme(self):
+        file = os.path.abspath("README.md")
+        if sys.platform == "win32":
+            os.startfile(file)
+        else:
+            opener = "xdg-open" if sys.platform == "linux" else "open"
+            subprocess.call([opener, file])
 
     def update_pdf_list(self):
         if not hasattr(self, "pdfs"):
@@ -58,6 +68,11 @@ class App(QMainWindow):
         else:
             self.pdfs = [widget for widget in self.subwidgets(self.docsLayout) if isinstance(widget, QtWidgets.QCheckBox)]
             self.pdfs_text = [widget.text() for widget in self.pdfs]
+        self.enable_clear_fields()
+
+    def enable_clear_fields(self):
+        if (hasattr(self, "pdfs") and self.pdfs != []) or self.ui.outputName.text() != "" or self.ui.mergeDocs.isChecked() or self.ui.extractPages.isChecked():
+            self.ui.clearFields.setEnabled(True)
 
     def enable_radios(self, pdfs: List):
         if len(pdfs) >= 1:
@@ -73,13 +88,13 @@ class App(QMainWindow):
             self.ui.mergeDocs.setDisabled(True)
             self.ui.extractPages.setDisabled(True)
             self.ui.rangePages.setDisabled(True)
+        self.enable_clear_fields()
 
     def add_documents(self):
         self.update_pdf_list()
         additions = QFileDialog.getOpenFileNames(self, caption="Select PDF documents", filter='PDF Files (*.pdf)')[0]
         for index, doc in enumerate(additions):
             doc = os.path.abspath(doc)
-            print(doc)
             if doc not in self.pdfs_text:
                 checkbox = QtWidgets.QCheckBox(doc)
                 checkbox.setText(doc)
@@ -121,6 +136,16 @@ class App(QMainWindow):
                 widget.deleteLater()
                 self.pdfs.remove(widget)
         self.update_pdf_list()
+        if self.ui.options.checkedId() != -1:
+            self.ui.options.setExclusive(False)
+            self.ui.options.checkedButton().setDisabled(True)
+            self.ui.options.checkedButton().setChecked(False)
+            self.ui.options.setExclusive(True)
+        else:
+            self.ui.mergeDocs.setDisabled(True)
+            self.ui.extractPages.setDisabled(True)
+        self.ui.clearFields.setDisabled(True)
+        self.ui.rangePages.clear()
 
     def merge_docs(self, pdfs: List):
         new_file = self.ui.outputName.text()
@@ -136,8 +161,8 @@ class App(QMainWindow):
         self.ui.openFile.setEnabled(True)
 
     def open_file(self):
-        folder = os.getcwd()
-        file = os.path.join(folder, self.ui.outputName.text())
+        current_folder = os.getcwd()
+        file = os.path.join(current_folder, self.ui.outputName.text())
         if sys.platform == "win32":
             os.startfile(file)
         else:
@@ -184,13 +209,17 @@ class App(QMainWindow):
             if self.overwrite():
                 if self.ui.mergeDocs.isChecked():
                     self.merge_docs(pdfs=self.pdfs_text)
+                    self.ui.openFile.setEnabled(True)
                 elif self.ui.extractPages.isChecked():
                     self.extract_pages(doc=self.pdfs_text[0])
+                    self.ui.openFile.setEnabled(True)
         else:
             if self.ui.mergeDocs.isChecked():
                 self.merge_docs(pdfs=self.pdfs_text)
+                self.ui.openFile.setEnabled(True)
             elif self.ui.extractPages.isChecked():
                 self.extract_pages(doc=self.pdfs_text[0])
+                self.ui.openFile.setEnabled(True)
 
 
 if __name__ == "__main__":
