@@ -136,7 +136,7 @@ class App(QMainWindow):
                 widget.deleteLater()
                 self.pdfs.remove(widget)
         self.update_pdf_list()
-        if self.ui.options.checkedId() != -1:
+        if self.ui.options.checkedId() != -1:  # if some of the two buttons was checked
             self.ui.options.setExclusive(False)
             self.ui.options.checkedButton().setDisabled(True)
             self.ui.options.checkedButton().setChecked(False)
