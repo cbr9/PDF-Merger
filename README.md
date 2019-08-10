@@ -1,5 +1,5 @@
 # PDF-Utils
-Simple program I made for myself, written in Python and Qt5 to merge several PDFs and extract pages. The OK button still requires some tweaking.
+Simple program I made for myself, written in Python and Qt5 to merge several PDFs and extract pages. The OK button still requires some tweaking. I'm also planning to rewrite everything in Go to optimize performance and avoid some PyDF2 issues.
 
 
 # Options:
